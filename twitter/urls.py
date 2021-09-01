@@ -20,7 +20,7 @@ from accounts.api.views import UserViewSet, AccountViewSet
 from tweets.api.views import TweetViewSet
 from friendships.api.views import FriendshipViewSet
 from newsfeeds.api.views import NewsFeedViewSet
-from comments.api.view import CommentViewSet
+from comments.api.views import CommentViewSet
 
 import debug_toolbar
 
