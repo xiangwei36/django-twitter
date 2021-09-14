@@ -28,6 +28,10 @@ class AccountViewSet(viewsets.ViewSet):
             }, status=400)
 
         user = serializer.save()
+
+        # Create UserProfile object
+        user.profile
+
         django_login(request, user)
         return Response({
             'success': True,
@@ -51,6 +55,7 @@ class AccountViewSet(viewsets.ViewSet):
                 'success': False,
                 'message': 'username and password does not match',
             }, status=400)
+
         django_login(request, user)
         return Response({
             'success': True,
