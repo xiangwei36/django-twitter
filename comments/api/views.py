@@ -2,7 +2,6 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from comments.models import Comment
-from comments.api.permissions import IsObjectOwner
 from comments.api.serializers import (
     CommentSerializer,
     CommentSerializerForCreate,
@@ -10,6 +9,7 @@ from comments.api.serializers import (
 )
 from inbox.services import NotificationService
 from utils.decorators import required_params
+from utils.permissions import IsObjectOwner
 
 
 class CommentViewSet(viewsets.GenericViewSet):
