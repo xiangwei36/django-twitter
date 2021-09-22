@@ -1,10 +1,10 @@
+from accounts.services import UserService
 from django.contrib.auth.models import User
-from utils.time_helpers import utc_now
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
-
+from utils.time_helpers import utc_now
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -30,6 +30,10 @@ class Tweet(models.Model):
     def __str__(self):
         # 这里是你执行 print(tweet instance) 的时候会显示的内容
         return f'{self.created_at} {self.user}: {self.content}'
+
+    @property
+    def cached_user(self):
+        return UserService.get_user_through_cache(self.user_id)
 
 
 class TweetPhoto(models.Model):
