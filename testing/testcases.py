@@ -2,6 +2,7 @@ from django.test import TestCase as DjangoTestCase
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
+from django_hbase.models import HBaseModel
 from friendships.models import Friendship
 from tweets.models import Tweet
 from rest_framework.test import APIClient
@@ -12,6 +13,23 @@ from utils.redis_client import RedisClient
 
 
 class TestCase(DjangoTestCase):
+    hbase_tables_created = False
+
+    def setUp(self):
+        self.clear_cache()
+        try:
+            self.hbase_tables_created = True
+            for hbase_model_class in HBaseModel.__subclasses__():
+                hbase_model_class.create_table()
+        except Exception:
+            self.tearDown()
+            raise
+
+    def tearDown(self):
+        if not self.hbase_tables_created:
+            return
+        for hbase_model_class in HBaseModel.__subclasses__():
+            hbase_model_class.drop_table()
 
     def clear_cache(self):
         RedisClient.clear()
