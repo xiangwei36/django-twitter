@@ -10,7 +10,7 @@ import time
 class FriendshipServiceTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(FriendshipServiceTests, self).setUp()
         self.linghu = self.create_user('linghu')
         self.dongxie = self.create_user('dongxie')
 
@@ -18,12 +18,12 @@ class FriendshipServiceTests(TestCase):
         user1 = self.create_user('user1')
         user2 = self.create_user('user2')
         for to_user in [user1, user2, self.dongxie]:
-            Friendship.objects.create(from_user=self.linghu, to_user=to_user)
+            self.create_friendship(from_user=self.linghu, to_user=to_user)
 
         user_id_set = FriendshipService.get_following_user_id_set(self.linghu.id)
         self.assertSetEqual(user_id_set, {user1.id, user2.id, self.dongxie.id})
 
-        Friendship.objects.filter(from_user=self.linghu, to_user=self.dongxie).delete()
+        FriendshipService.unfollow(self.linghu.id, self.dongxie.id)
         user_id_set = FriendshipService.get_following_user_id_set(self.linghu.id)
         self.assertSetEqual(user_id_set, {user1.id, user2.id})
 
@@ -93,7 +93,7 @@ class HBaseTests(TestCase):
         HBaseFollowing.create(from_user_id=1, to_user_id=3, created_at=self.ts_now)
         HBaseFollowing.create(from_user_id=1, to_user_id=4, created_at=self.ts_now)
 
-        followings = HBaseFollowing.filter(prefix=(1, None, None))
+        followings = HBaseFollowing.filter(prefix=(1, None))
         self.assertEqual(3, len(followings))
         self.assertEqual(followings[0].from_user_id, 1)
         self.assertEqual(followings[0].to_user_id, 2)
@@ -103,33 +103,33 @@ class HBaseTests(TestCase):
         self.assertEqual(followings[2].to_user_id, 4)
 
         # test limit
-        results = HBaseFollowing.filter(prefix=(1, None, None), limit=1)
+        results = HBaseFollowing.filter(prefix=(1, None), limit=1)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].to_user_id, 2)
 
-        results = HBaseFollowing.filter(prefix=(1, None, None), limit=2)
+        results = HBaseFollowing.filter(prefix=(1, None), limit=2)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0].to_user_id, 2)
         self.assertEqual(results[1].to_user_id, 3)
 
-        results = HBaseFollowing.filter(prefix=(1, None, None), limit=4)
+        results = HBaseFollowing.filter(prefix=(1, None), limit=4)
         self.assertEqual(len(results), 3)
         self.assertEqual(results[0].to_user_id, 2)
         self.assertEqual(results[1].to_user_id, 3)
         self.assertEqual(results[2].to_user_id, 4)
 
-        results = HBaseFollowing.filter(start=(1, results[1].created_at, None), limit=2)
+        results = HBaseFollowing.filter(start=(1, results[1].created_at), limit=2)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0].to_user_id, 3)
         self.assertEqual(results[1].to_user_id, 4)
 
         # test reverse
-        results = HBaseFollowing.filter(prefix=(1, None, None), limit=2, reverse=True)
+        results = HBaseFollowing.filter(prefix=(1, None), limit=2, reverse=True)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0].to_user_id, 4)
         self.assertEqual(results[1].to_user_id, 3)
 
-        results = HBaseFollowing.filter(start=(1, results[1].created_at, None), limit=2, reverse=True)
+        results = HBaseFollowing.filter(start=(1, results[1].created_at), limit=2, reverse=True)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0].to_user_id, 3)
         self.assertEqual(results[1].to_user_id, 2)
